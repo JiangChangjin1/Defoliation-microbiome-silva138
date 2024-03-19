@@ -25,7 +25,7 @@ taxonomy=taxonomy_2023
 date
 
 
-# Process samples  
+### 1.Process samples  
 
 sample_id=$(ls $SEQ_DIR/*R1.fq |  cut -d  "_"  -f1,2,3,4,5 |cut -d  "/"  -f2 | uniq)
  
@@ -92,7 +92,7 @@ $VSEARCH --threads $THREADS \
     --sizeout \
     --output $OUT_DIR/all_filted_derep.fa
 
-# 2. two piplines were used to obtain OTU table
+
 ### unoise3 pipline 
 echo
 echo Unoise the sequences by unoise3 
@@ -123,7 +123,7 @@ biom convert -i $OUT_DIR/zotus_tab.txt \
   --table-type="OTU table" 
 
 
-# 3. qiime2 annotation for unoise3 pipline
+### qiime2 annotation for unoise3 pipline
 
 qiime tools import \
       --input-path $OUT_DIR/nonchimeras_zotus.fa \
@@ -150,7 +150,7 @@ qiime feature-classifier fit-classifier-naive-bayes \
       --o-classification taxonomy_by_silva-138-99-nb-classifier-799F-1193R.qza
 	  
 	  
-###unzip taxonomy_by_silva-138-99-nb-classifier-799F-1193R.qza in unzip_tax_799f_1193r
+### unzip taxonomy_by_silva-138-99-nb-classifier-799F-1193R.qza in unzip_tax_799f_1193r
 
 biom add-metadata -i zotus_tab.biom \
     --observation-metadata-fp unzip_tax_799f_1193r/61f3703b-850e-4c0e-be6b-bf27252d516e/data/taxonomy.tsv \
@@ -200,56 +200,3 @@ biom convert -i zotus_tab_tax_799f_1193r_modify.tsv \
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###for unoise3 pipline
-
-echo
-echo source activate qiime1
-
-source activate qiime1
-
-echo
-echo assign taxonomy
-
-assign_taxonomy.py -i  $OUT_DIR/nonchimeras_zotus.fa   \
-  -r $REF/silva123_97_otus_16S.fasta \
-  -t $REF/silva123_97_raw_taxonomy.txt \
-  -o $taxonomy
-
-echo
-echo biom processing 
-
-biom add-metadata -i $OUT_DIR/zotus_tab.biom \
-    --observation-metadata-fp $taxonomy/nonchimeras_zotus_tax_assignments.txt \
-    -o $OUT_DIR/zotus_tab_tax.biom \
-    --sc-separated taxonomy --observation-header OTUID,taxonomy  
-	
-biom convert -i  $OUT_DIR/zotus_tab_tax.biom  \
-    -o $OUT_DIR/zotus_tab_tax.tsv \
-	--to-tsv \
-	--header-key taxonomy 
-
-biom convert -i $OUT_DIR/zotus_tab_tax.tsv \
-    -o $OUT_DIR/zotus_tab_tax_final.biom \
-	--to-json --table-type="OTU table" \
-	--process-obs-metadata taxonomy  
